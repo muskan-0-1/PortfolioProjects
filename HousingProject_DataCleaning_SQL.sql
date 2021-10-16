@@ -5,8 +5,17 @@ Cleaning Data in SQL Queries
 SELECT * 
 FROM PortfolioProject.dbo.NashvilleHousing
 
-------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------
+
 -- Standardize Date Format
+
+SELECT saleDateConverted, CONVERT(Date,SaleDate)
+FROM PortfolioProject.dbo.NashvilleHousing
+
+UPDATE NashvilleHousing
+SET SaleDate = CONVERT(Date,SaleDate)
+
+-- If it doesn't Update properly
 
 ALTER TABLE NashvilleHousing
 ADD SaleDateConverted Date;
@@ -14,17 +23,18 @@ ADD SaleDateConverted Date;
 UPDATE NashvilleHousing
 SET SaleDateConverted = CONVERT(Date,SaleDate)
 
-SELECT SaleDateConverted
-FROM PortfolioProject.dbo.NashvilleHousing
 
-------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------
+
 -- Populate Property Address Data
 
 SELECT * 
 FROM PortfolioProject.dbo.NashvilleHousing
 ORDER BY ParcelID
 
+
 -- For the same ParcelID, PropertyAddress is also same
+
 
 SELECT a.ParcelID, a.PropertyAddress, b.ParcelID, b.PropertyAddress, ISNULL(a.PropertyAddress,b.PropertyAddress) 
 FROM PortfolioProject.dbo.NashvilleHousing a
@@ -32,6 +42,7 @@ JOIN PortfolioProject.dbo.NashvilleHousing b
 	ON a.ParcelID = b.ParcelID
 	AND a.[UniqueID ] <> b.[UniqueID ]
 WHERE a.PropertyAddress IS NULL
+
 
 UPDATE a
 SET PropertyAddress = ISNULL(a.PropertyAddress, b.PropertyAddress)
@@ -42,7 +53,10 @@ JOIN PortfolioProject.dbo.NashvilleHousing b
 WHERE a.PropertyAddress IS NULL
 
 
----------------------------------------------------------
+
+
+--------------------------------------------------------------------------------------------------------------------------
+
 -- Breaking out PropertyAddress into Individual Columns (Address, City, State)
 
 
@@ -61,6 +75,7 @@ ADD PropertySplitAddress Nvarchar(255);
 UPDATE NashvilleHousing
 SET PropertySplitAddress = SUBSTRING(PropertyAddress, 1, CHARINDEX(',', PropertyAddress) - 1)
 
+
 ALTER TABLE NashvilleHousing
 ADD PropertySplitCity Nvarchar(255);
 
@@ -72,6 +87,7 @@ SELECT *
 FROM PortfolioProject.dbo.NashvilleHousing
 
 
+
 -- Breaking out OwnerAddress into Individual Columns (Address, City, State)
 -- Easier way
 
@@ -80,7 +96,6 @@ PARSENAME(REPLACE(OwnerAddress, ',', '.'), 3)
 , PARSENAME(REPLACE(OwnerAddress, ',', '.'), 2)
 , PARSENAME(REPLACE(OwnerAddress, ',', '.'), 1)
 FROM PortfolioProject.dbo.NashvilleHousing
-
 
 
 ALTER TABLE NashvilleHousing
@@ -106,7 +121,8 @@ FROM PortfolioProject.dbo.NashvilleHousing
 
 
 
--------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------
+
 -- Change Y and N to Yes and No in "SoldAsVacant" Field
 
 SELECT DISTINCT(SoldAsVacant), COUNT(SoldAsVacant)
@@ -130,7 +146,7 @@ SET SoldAsVacant= CASE
 		ELSE SoldAsVacant
 		END
 
--------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------
 
 --Remove Duplicates
 
@@ -151,9 +167,10 @@ FROM PortfolioProject.dbo.NashvilleHousing
 DELETE
 FROM RowNumCTE
 WHERE row_num > 1
+ORDER BY PropertyAddress
 
 
--------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------
 
 -- Delete unused columns
 
@@ -163,4 +180,4 @@ FROM PortfolioProject.dbo.NashvilleHousing
 ALTER TABLE PortfolioProject.dbo.NashvilleHousing
 DROP COLUMN OwnerAddress, PropertyAddress, SaleDate
 
--------------------------------------------------------------------
+
